@@ -1,0 +1,30 @@
+"$schema" = "https://starship.rs/config-schema.json"
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$line_break\
+$character"""
+
+# Folder icon + path
+[directory]
+style = "blue"
+format = "[󰉋 $path]($style) "
+
+# Git branch icon + name
+[git_branch]
+symbol = " "
+style = "bright-black"
+format = "[$symbol$branch]($style) "
+
+# Minimal git status (only shows when needed)
+[git_status]
+style = "cyan"
+format = "[$all_status$ahead_behind]($style) "
+
+# Prompt arrow
+[character]
+success_symbol = "[❯](purple)"
+error_symbol = "[❯](red)"
+vimcmd_symbol = "[❮](green)"
