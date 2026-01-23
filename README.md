@@ -1,6 +1,7 @@
-# 🚀 Starship RS Setup on Windows 10 (Windows Terminal + VS Code)
+# 🚀 Starship RS Setup on Windows 10
+*(Windows Terminal + PowerShell 7 + VS Code)*
 
-Clean, simple and 100% working guide.
+Clean, simple, and fully working setup.
 
 ---
 
@@ -8,7 +9,7 @@ Clean, simple and 100% working guide.
 Download from:
 https://github.com/microsoft/terminal/releases
 
-Windows 11 users can skip default terminal setup.
+> Windows 11 users can skip default terminal application setup.
 
 ---
 
@@ -16,11 +17,10 @@ Windows 11 users can skip default terminal setup.
 Download from:
 https://github.com/PowerShell/PowerShell/releases
 
-Restart Windows Terminal after installation.
-
-Set PowerShell 7 as default:
-- Settings → Startup → Default Profile → PowerShell 7
-- Default Terminal Application → Windows Terminal (Win10 only)
+After installation:
+- Open Windows Terminal
+- Settings → Startup → Default Profile → **PowerShell 7**
+- Default Terminal Application → **Windows Terminal** (Windows 10 only)
 
 ---
 
@@ -50,9 +50,9 @@ Choose one flavor:
 ## 🔹 Step 5 – Apply Catppuccin Theme
 
 Open Settings →
-`Open JSON file` (Ctrl + Shift + ,)
+**Open JSON file** (Ctrl + Shift + ,)
 
-Paste flavor JSON into:
+Paste `flavor.json` into:
 
 ```json
 "schemes": [
@@ -60,7 +60,7 @@ Paste flavor JSON into:
 ]
 ````
 
-Paste flavorTheme JSON into:
+Paste `flavorTheme.json` into:
 
 ```json
 "themes": [
@@ -71,13 +71,13 @@ Paste flavorTheme JSON into:
 Save and close.
 
 Then:
-Settings → Profiles → Appearance → Color scheme → Select your flavor.
+Settings → Profiles → Appearance → Color Scheme → select your flavor.
 
 ---
 
 ## 🔠 Step 6 – Install Nerd Font (Required)
 
-Starship icons only work with Nerd Fonts.
+Starship icons need Nerd Fonts.
 
 Download:
 [https://www.nerdfonts.com/font-downloads](https://www.nerdfonts.com/font-downloads)
@@ -87,16 +87,16 @@ Recommended:
 * JetBrainsMono Nerd Font
 * FiraCode Nerd Font
 
-Install font → Restart Terminal →
-Settings → Profile → Appearance → Font Face → Select Nerd Font.
+Install the font → Restart Terminal →
+Settings → Profiles → Appearance → Font Face → Select Nerd Font.
 
-### Benefits:
+### Benefits of Nerd Fonts
 
 * Git icons
 * Branch symbols
-* Language icons
-* Clean UI
-* Professional look
+* Language logos
+* Clean and professional UI
+* Perfect Starship experience
 
 ---
 
@@ -106,13 +106,13 @@ Settings → Profile → Appearance → Font Face → Select Nerd Font.
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-Restart terminal.
+Restart Terminal.
 
 ---
 
 ## 📦 Step 8 – Install Chocolatey
 
-Run PowerShell (Admin recommended):
+Run PowerShell (Administrator recommended):
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
@@ -141,7 +141,7 @@ starship --version
 
 ---
 
-## 📝 Step 10 – Setup PowerShell Profile (Important)
+## 📝 Step 10 – Setup PowerShell Profile (Safe Method)
 
 Open profile:
 
@@ -159,28 +159,60 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 
 Save and close.
 
-Restart Terminal and VS Code.
+Restart Windows Terminal and VS Code.
 
 ---
 
-## 🧪 Step 11 – Test
+## 🎨 Step 11 – Set Starship Presets
+
+List all presets:
+
+```powershell
+starship preset
+```
+
+Apply one:
+
+```powershell
+starship preset <preset-name> > $HOME\.config\starship.toml
+```
+
+Examples:
+
+```powershell
+starship preset nerd-font-symbols > $HOME\.config\starship.toml
+```
+
+```powershell
+starship preset pastel-powerline > $HOME\.config\starship.toml
+```
+
+```powershell
+starship preset minimal > $HOME\.config\starship.toml
+```
+
+Reload:
+
+```powershell
+. $PROFILE
+```
+
+---
+
+## 🧪 Step 12 – Test Everything
 
 ```powershell
 starship --version
 where.exe starship
 ```
 
-You should see Starship version and path.
+You should see Starship version and its path.
 
 ---
 
 ## 🛠 Troubleshooting
 
-### 1. `starship is not recognized`
-
-Starship is not installed or PATH not refreshed.
-
-Fix:
+### ❌ `starship is not recognized`
 
 ```powershell
 choco install starship -y
@@ -190,24 +222,20 @@ Restart Terminal & VS Code.
 
 ---
 
-### 2. `choco is not recognized`
-
-Chocolatey not installed.
-
-Fix:
+### ❌ `choco is not recognized`
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
 iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
 ```
 
-Restart terminal.
+Restart Terminal.
 
 ---
 
-### 3. VS Code Terminal shows errors
+### ❌ VS Code Terminal errors at startup
 
-Make sure your profile is safe:
+Ensure your profile is safe:
 
 ```powershell
 notepad $PROFILE
@@ -223,7 +251,7 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 
 ---
 
-### 4. Execution policy blocks scripts
+### ❌ Script blocked
 
 ```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -233,7 +261,7 @@ Restart terminal.
 
 ---
 
-## ✨ Result
+## ✨ Final Result
 
 You now have:
 
@@ -242,7 +270,7 @@ You now have:
 * Catppuccin Theme
 * Nerd Font Icons
 * Starship Prompt
-* Clean + Fast + Modern UI
+* Presets System
 * Same look in Windows Terminal & VS Code
 
-Perfect terminal for developers 🚀
+Fast. Clean. Professional. Developer-grade terminal experience. 💎
