@@ -4,24 +4,39 @@ format = """
 $directory\
 $git_branch\
 $git_status\
+$cmd_duration\
 $line_break\
 $character"""
 
-# Folder icon + path
+# Folder
 [directory]
 style = "blue"
 format = "[󰉋 $path]($style) "
 
-# Git branch icon + name
+# Git branch
 [git_branch]
 symbol = " "
 style = "bright-black"
 format = "[$symbol$branch]($style) "
 
-# Minimal git status (only shows when needed)
+# Git status (tiny but expressive)
 [git_status]
 style = "cyan"
-format = "[$all_status$ahead_behind]($style) "
+format = "([$all_status$ahead_behind]($style)) "
+
+conflicted = "⚔ "
+untracked  = " "
+modified   = " "
+staged     = " "
+renamed    = " "
+deleted    = " "
+stashed    = " "
+
+# Command duration (only shows if command was slow)
+[cmd_duration]
+min_time = 500
+style = "yellow"
+format = "[󱦟 $duration]($style) "
 
 # Prompt arrow
 [character]
