@@ -14,9 +14,8 @@ A clean and minimal **PowerShell startup banner** that shows:
 
 ## ✨ Preview
 
-```
+<img width="869" height="210" alt="Screenshot 2026-02-23 192003" src="https://github.com/user-attachments/assets/235a6203-bd27-41ce-9d66-c3bf064035e1" />
 
-````
 
 ---
 
