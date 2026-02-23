@@ -158,6 +158,7 @@ function Get-ZaiInfoLive {
             User   = $env:USERNAME
             Host   = $env:COMPUTERNAME
             OS     = "Win 10 LTSC (64-bit)"  # keep your short OS text
+		    #OS     = "$($os.Caption) ($($os.OSArchitecture))"
             Shell  = "PowerShell $($PSVersionTable.PSVersion)"
             CPU    = (($cpu.Name -replace "\s+", " ").Trim())
             RAM    = "$ram GB"
