@@ -156,7 +156,8 @@ function Get-ZaiInfoLive {
 
         return @{
             User   = $env:USERNAME
-            Host   = $env:COMPUTERNAME
+            Host   = "ZaiNix"
+			#Host   = $env:COMPUTERNAME
             OS     = "Win 10 LTSC (64-bit)"  # keep your short OS text
 		    #OS     = "$($os.Caption) ($($os.OSArchitecture))"
             Shell  = "PowerShell $($PSVersionTable.PSVersion)"
@@ -258,7 +259,7 @@ function Show-ZaiBanner {
 
             Write-Host "  $icon  " -NoNewline -ForegroundColor Cyan
             Write-Host "$label"     -NoNewline -ForegroundColor Cyan
-            Write-Host " : "        -NoNewline -ForegroundColor DarkGray
+            Write-Host " ▸ "        -NoNewline -ForegroundColor DarkGray
             Write-Host "$value"     -ForegroundColor White
         } else {
             Write-Host ""
