@@ -64,35 +64,81 @@ If prompted → click **Yes** to create it.
 Paste **everything below** into your profile:
 
 ```powershell
-function Show-ZaiBanner {
-    if ($global:ZAI_BANNER_SHOWN) { return }
-    $global:ZAI_BANNER_SHOWN = $true
+# ==========================================
+# Zai Startup Banner (Auto + Manual Commands)
+# Windows Terminal + PowerShell 7 + Starship
+# ==========================================
 
-    Clear-Host
+# --- Settings ---
+# Auto banner toggle (persistent per-user)
+$script:ZaiAutoFlagPath = Join-Path $env:USERPROFILE ".zai-banner-auto"
+if (-not (Test-Path $script:ZaiAutoFlagPath)) { "on" | Set-Content -Encoding ASCII $script:ZaiAutoFlagPath }
 
-    $logo = @(
-" ███████████            ███ ",
-"░█░░░░░░███            ░░░  ",
-"░     ███░    ██████   ████ ",
-"     ███     ░░░░░███ ░░███ ",
-"    ███       ███████  ░███ ",
-"  ████     █ ███░░███  ░███ ",
-" ███████████░░████████ █████",
-"░░░░░░░░░░░  ░░░░░░░░ ░░░░░ "
-)
+# Cache path for --fast
+$script:ZaiCachePath = Join-Path $env:USERPROFILE ".zai-banner-cache.json"
 
-    # Icons (Nerd Font)
-    $I_USER = ""
-    $I_HOST = "󰟀"
-    $I_OS   = "󰍹"
-    $I_SH   = ""
-    $I_CPU  = "󰍛"
-    $I_RAM  = "󰘚"
-    $I_GPU  = "󰢮"
-    $I_DISK = "󰋊"
-    $I_UP   = "󱫐"
+# Track "shown once" per session
+$global:ZAI_BANNER_SHOWN = $false
 
-    # Gather info
+function Get-ZaiAutoState {
+    try {
+        $v = (Get-Content $script:ZaiAutoFlagPath -ErrorAction Stop | Select-Object -First 1).Trim().ToLower()
+        if ($v -ne "off") { return "on" }
+        return "off"
+    } catch { return "on" }
+}
+
+function Set-ZaiAutoState([ValidateSet("on","off")]$state) {
+    $state | Set-Content -Encoding ASCII $script:ZaiAutoFlagPath
+}
+
+function Get-ZaiInfoFast {
+    # Returns a hashtable with cached system info; refreshes if missing or older than 24h
+    $maxAgeHours = 24
+
+    $needRefresh = $true
+    if (Test-Path $script:ZaiCachePath) {
+        try {
+            $json = Get-Content $script:ZaiCachePath -Raw | ConvertFrom-Json
+            $ts = [datetime]$json.timestamp
+            if (((Get-Date) - $ts).TotalHours -lt $maxAgeHours) {
+                $needRefresh = $false
+                return @{
+                    User   = $json.user
+                    Host   = $json.host
+                    OS     = $json.os
+                    Shell  = $json.shell
+                    CPU    = $json.cpu
+                    RAM    = $json.ram
+                    GPU    = $json.gpu
+                    Disk   = $json.disk
+                    Uptime = $json.uptime
+                }
+            }
+        } catch { $needRefresh = $true }
+    }
+
+    if ($needRefresh) {
+        $info = Get-ZaiInfoLive
+        try {
+            @{
+                timestamp = (Get-Date).ToString("o")
+                user      = $info.User
+                host      = $info.Host
+                os        = $info.OS
+                shell     = $info.Shell
+                cpu       = $info.CPU
+                ram       = $info.RAM
+                gpu       = $info.GPU
+                disk      = $info.Disk
+                uptime    = $info.Uptime
+            } | ConvertTo-Json | Set-Content -Encoding UTF8 $script:ZaiCachePath
+        } catch { }
+        return $info
+    }
+}
+
+function Get-ZaiInfoLive {
     try {
         $os  = Get-CimInstance Win32_OperatingSystem
         $cs  = Get-CimInstance Win32_ComputerSystem
@@ -108,23 +154,94 @@ function Show-ZaiBanner {
         $uptime = (Get-Date) - $os.LastBootUpTime
         $uptimeStr = "{0}d {1}h {2}m" -f $uptime.Days, $uptime.Hours, $uptime.Minutes
 
-        $rows = @(
-            @{ i=$I_USER; l="User";   v=$env:USERNAME },
-            @{ i=$I_HOST; l="Host";   v=$env:COMPUTERNAME },
-          # @{ i=$I_OS;   l="OS";     v="$($os.Caption) ($($os.OSArchitecture))" },
-			@{ i=$I_OS;   l="OS";     v="Win 10 LTSC (64-bit)" },
-            @{ i=$I_SH;   l="Shell";  v="PowerShell $($PSVersionTable.PSVersion)" },
-            @{ i=$I_CPU;  l="CPU";    v=($cpu.Name -replace "\s+", " ").Trim() },
-            @{ i=$I_RAM;  l="RAM";    v="$ram GB" },
-            @{ i=$I_GPU;  l="GPU";    v=($gpu.Name -replace "\s+", " ").Trim() },
-            @{ i=$I_DISK; l="Disk";   v="C: $diskTotal GB / $diskFree GB free" },
-            @{ i=$I_UP;   l="Uptime"; v=$uptimeStr }
-        )
+        return @{
+            User   = $env:USERNAME
+            Host   = $env:COMPUTERNAME
+            OS     = "Win 10 LTSC (64-bit)"  # keep your short OS text
+            Shell  = "PowerShell $($PSVersionTable.PSVersion)"
+            CPU    = (($cpu.Name -replace "\s+", " ").Trim())
+            RAM    = "$ram GB"
+            GPU    = (($gpu.Name -replace "\s+", " ").Trim())
+            Disk   = "C: $diskTotal GB / $diskFree GB free"
+            Uptime = $uptimeStr
+        }
     } catch {
-        $rows = @(@{ i="!"; l="Info"; v="Unavailable" })
+        return @{
+            User   = $env:USERNAME
+            Host   = $env:COMPUTERNAME
+            OS     = "Unavailable"
+            Shell  = "PowerShell $($PSVersionTable.PSVersion)"
+            CPU    = "Unavailable"
+            RAM    = "Unavailable"
+            GPU    = "Unavailable"
+            Disk   = "Unavailable"
+            Uptime = "Unavailable"
+        }
+    }
+}
+
+function Show-ZaiBanner {
+    param(
+        [switch]$Mini,
+        [switch]$Fast,
+        [switch]$Clear
+    )
+
+    # Auto-run should only show once per session
+    if (-not $Clear -and -not $Mini -and -not $Fast) {
+        if ($global:ZAI_BANNER_SHOWN) { return }
+        $global:ZAI_BANNER_SHOWN = $true
     }
 
-    # Layout
+    if ($Clear) { Clear-Host }
+
+    $logo = @(
+" ███████████            ███ ",
+"░█░░░░░░███            ░░░  ",
+"░     ███░    ██████   ████ ",
+"     ███     ░░░░░███ ░░███ ",
+"    ███       ███████  ░███ ",
+"  ████     █ ███░░███  ░███ ",
+" ███████████░░████████ █████",
+"░░░░░░░░░░░  ░░░░░░░░ ░░░░░ "
+)
+
+    # Nerd Font Icons
+    $I_USER = ""
+    $I_HOST = "󰟀"
+    $I_OS   = "󰍹"
+    $I_SH   = ""
+    $I_CPU  = "󰍛"
+    $I_RAM  = "󰘚"
+    $I_GPU  = "󰢮"
+    $I_DISK = "󰋊"
+    $I_UP   = "󱫐"
+
+    $info = if ($Fast) { Get-ZaiInfoFast } else { Get-ZaiInfoLive }
+
+    if ($Mini) {
+        # Compact version
+        Write-Host ($logo[0]) -ForegroundColor Gray
+        Write-Host ("{0}  {1} {2}" -f $I_USER, "User:", $info.User) -ForegroundColor Cyan
+        Write-Host ("{0}  {1} {2}" -f $I_HOST, "Host:", $info.Host) -ForegroundColor Cyan
+        Write-Host ("{0}  {1} {2}" -f $I_CPU, "CPU :", $info.CPU) -ForegroundColor Cyan
+        Write-Host ("{0}  {1} {2}" -f $I_RAM, "RAM :", $info.RAM) -ForegroundColor Cyan
+        Write-Host ""
+        return
+    }
+
+    $rows = @(
+        @{ i=$I_USER; l="User";   v=$info.User },
+        @{ i=$I_HOST; l="Host";   v=$info.Host },
+        @{ i=$I_OS;   l="OS";     v=$info.OS },
+        @{ i=$I_SH;   l="Shell";  v=$info.Shell },
+        @{ i=$I_CPU;  l="CPU";    v=$info.CPU },
+        @{ i=$I_RAM;  l="RAM";    v=$info.RAM },
+        @{ i=$I_GPU;  l="GPU";    v=$info.GPU },
+        @{ i=$I_DISK; l="Disk";   v=$info.Disk },
+        @{ i=$I_UP;   l="Uptime"; v=$info.Uptime }
+    )
+
     $leftWidth  = ($logo | Measure-Object Length -Maximum).Maximum + 2
     $labelWidth = 7
     $maxLines   = [Math]::Max($logo.Count, $rows.Count)
@@ -150,8 +267,55 @@ function Show-ZaiBanner {
     Write-Host ""
 }
 
-Show-ZaiBanner
+# ------------------------------------------
+# Manual command: `zai`
+#   zai           -> show banner (manual)
+#   zai -c        -> clear + show banner
+#   zai --mini    -> compact banner
+#   zai --fast    -> cached/fast banner
+#   zai on/off    -> toggle auto banner
+# ------------------------------------------
+function zai {
+    param(
+        [switch]$c,
+        [switch]$mini,
+        [switch]$fast,
+        [switch]$help,
+        [ValidateSet("on","off")] [string]$toggle
+    )
 
+    if ($help) {
+        Write-Host ""
+        Write-Host "Zai Banner Command" -ForegroundColor Cyan
+        Write-Host "------------------" -ForegroundColor DarkGray
+        Write-Host ""
+        Write-Host "Usage:" -ForegroundColor Yellow
+        Write-Host "  zai              Show banner (manual)" -ForegroundColor White
+        Write-Host "  zai -c           Clear screen + show banner" -ForegroundColor White
+        Write-Host "  zai -mini        Show compact banner" -ForegroundColor White
+        Write-Host "  zai -fast        Show banner using cached system info" -ForegroundColor White
+        Write-Host "  zai on           Enable auto banner on terminal start" -ForegroundColor White
+        Write-Host "  zai off          Disable auto banner on terminal start" -ForegroundColor White
+        Write-Host "  zai -help        Show this help message" -ForegroundColor White
+        Write-Host ""
+        return
+    }
+
+    if ($toggle) {
+        Set-ZaiAutoState $toggle
+        Write-Host "Zai auto banner: $toggle" -ForegroundColor Green
+        return
+    }
+
+    # Manual run should always show banner
+    $global:ZAI_BANNER_SHOWN = $false
+    Show-ZaiBanner -Clear:$c -Mini:$mini -Fast:$fast
+}
+
+# Auto banner (once per session) if enabled
+if ((Get-ZaiAutoState) -eq "on") {
+    Show-ZaiBanner
+}
 ```
 
 ---
@@ -161,8 +325,9 @@ Show-ZaiBanner
 If you use **Starship**, keep this **below** the banner:
 
 ```powershell
+# Starship prompt
 if (Get-Command starship -ErrorAction SilentlyContinue) {
-  Invoke-Expression (&starship init powershell)
+    Invoke-Expression (&starship init powershell)
 }
 ```
 
