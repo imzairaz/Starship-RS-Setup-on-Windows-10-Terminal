@@ -5,31 +5,38 @@
 # ==========================================
 # Starship Prompt
 # ==========================================
-
 if (Get-Command starship -ErrorAction SilentlyContinue) {
     Invoke-Expression (&starship init powershell)
+
+    # Blank line between prompts, but not before the first one
+    $global:__promptFirstRun = $true
+    $__starshipPrompt = $function:prompt
+
+    function prompt {
+        if (-not $global:__promptFirstRun) {
+            Write-Host ""
+        }
+        $global:__promptFirstRun = $false
+        & $__starshipPrompt
+    }
 }
 
 # ==========================================
 # Zoxide (smart cd)
 # ==========================================
-
 Invoke-Expression (& { (zoxide init powershell | Out-String) })
 
 # ==========================================
 # fzf fuzzy cd
 # ==========================================
-
 # Type: cdf
 # Opens a fuzzy folder picker
-
 function fcd {
     $dir = fzf --walker=dir
     if ($dir) {
         Set-Location $dir
     }
 }
-
 Set-Alias cdf fcd
 
 # ==========================================
@@ -55,17 +62,14 @@ if (Test-Path "$py311Scripts\thefuck.exe") {
 # ==========================================
 # PSReadLine
 # ==========================================
-
 Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
-
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
 # ==========================================
 # Aliases
 # ==========================================
-
 Set-Alias ls lsd
 
 # ==========================================
