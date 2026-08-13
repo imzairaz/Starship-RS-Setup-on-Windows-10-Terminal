@@ -35,9 +35,9 @@ format   = "[ 󱦟 $duration]($style)"
 style    = "#6c7086"
 min_time = 5_000
 [character]
-success_symbol = "[╰─❯](bold #cdd6f4)"
-error_symbol   = "[╰─❯](bold #f38ba8)"
-vimcmd_symbol  = "[╰─❮](bold #6c7086)"
+success_symbol = "[└─❯](bold #cdd6f4)"
+error_symbol   = "[└─❯](bold #f38ba8)"
+vimcmd_symbol  = "[└─❮](bold #6c7086)"
 [package]
 disabled = true
 [nodejs]
