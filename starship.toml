@@ -1,48 +1,72 @@
-# After the ASCII Header Below have a empty line this is the Culprit <3
-add_newline = false
-
-"$schema" = "https://starship.rs/config-schema.json"
-
 format = """
 $directory\
-$git_branch\
-$git_status\
+$git_branch$git_status\
 $cmd_duration\
 $line_break\
 $character"""
-
-# Folder
+add_newline = false
 [directory]
-style = "blue"
-format = "[󰉋 $path]($style) "
-
-# Git branch
+format             = "[󰉋 $path]($style)"
+style              = "bold #cdd6f4"
+truncation_length  = 1
+truncation_symbol  = ""
+truncate_to_repo   = false
+home_symbol        = "~"
+read_only          = " 󰌾"
 [git_branch]
-symbol = " "
-style = "bright-black"
-format = "[$symbol$branch]($style) "
-
-# Git status (tiny but expressive)
+format = "[ 󰘬 $branch]($style)"
+symbol = ""
+style  = "#6c7086"
 [git_status]
-style = "cyan"
-format = "([$all_status$ahead_behind]($style)) "
-
-conflicted = "⚔ "
-untracked  = " "
-modified   = " "
-staged     = " "
-renamed    = " "
-deleted    = " "
-stashed    = " "
-
-# Command duration (only shows if command was slow)
+format     = "[$all_status$ahead_behind]($style)"
+style      = "#6c7086"
+ahead      = " ↑${count}"
+behind     = " ↓${count}"
+diverged   = " "
+modified   = " "
+staged     = " "
+untracked  = " "
+conflicted = " "
+deleted    = " "
+renamed    = " "
+stashed    = " 󰆼"
 [cmd_duration]
-min_time = 500
-style = "yellow"
-format = "[󱦟 $duration]($style) "
-
-# Prompt arrow
+format   = "[ 󱦟 $duration]($style)"
+style    = "#6c7086"
+min_time = 5_000
 [character]
-success_symbol = "[❯](purple)"
-error_symbol = "[❯](red)"
-vimcmd_symbol = "[❮](green)"
+success_symbol = "[╰─❯](bold #cdd6f4)"
+error_symbol   = "[╰─❯](bold #f38ba8)"
+vimcmd_symbol  = "[╰─❮](bold #6c7086)"
+[package]
+disabled = true
+[nodejs]
+disabled = true
+[python]
+disabled = true
+[golang]
+disabled = true
+[rust]
+disabled = true
+[java]
+disabled = true
+[ruby]
+disabled = true
+[swift]
+disabled = true
+[bun]
+disabled = true
+[conda]
+disabled = true
+[docker_context]
+disabled = true
+[jobs]
+disabled = true
+[status]
+disabled = true
+[time]
+disabled = true
+[username]
+disabled = true
+[hostname]
+disabled = true
