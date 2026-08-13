@@ -8,15 +8,15 @@
 if (Get-Command starship -ErrorAction SilentlyContinue) {
     Invoke-Expression (&starship init powershell)
 
-    # Blank line between prompts, but not before the first one
-    $global:__promptFirstRun = $true
+    # Blank line between prompts, but not before the first one, and not
+    # right after clear/cls — a cleared screen should start clean too.
     $__starshipPrompt = $function:prompt
 
     function prompt {
-        if (-not $global:__promptFirstRun) {
+        $__lastCmd = (Get-History -Count 1).CommandLine
+        if ($MyInvocation.HistoryId -gt 1 -and $__lastCmd -notin @('clear', 'cls')) {
             Write-Host ""
         }
-        $global:__promptFirstRun = $false
         & $__starshipPrompt
     }
 }
