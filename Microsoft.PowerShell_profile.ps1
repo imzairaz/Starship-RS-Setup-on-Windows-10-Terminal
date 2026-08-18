@@ -1,85 +1,122 @@
 # ==========================================
 # Windows Terminal + PowerShell 7 + Starship
 # ==========================================
-function cdf {
-    $folder = Get-ChildItem -Directory | ForEach-Object { $_.FullName } | fzf
-    if ($folder) {
-        Set-Location $folder
-    }
-}
+
+
 # ==========================================
-# Starship Prompt
+# Starship Prompt Configuration
 # ==========================================
 if (Get-Command starship -ErrorAction SilentlyContinue) {
     Invoke-Expression (&starship init powershell)
 
-    # Blank line between prompts, but not before the first one, and not
-    # right after clear/cls — a cleared screen should start clean too.
+    # Add an empty line between prompts for better readability.
+    # Avoid adding spacing after clear/cls commands so a cleared terminal starts clean.
     $__starshipPrompt = $function:prompt
 
     function prompt {
         $__lastCmd = (Get-History -Count 1).CommandLine
+
         if ($MyInvocation.HistoryId -gt 1 -and $__lastCmd -notin @('clear', 'cls')) {
             Write-Host ""
         }
+
         & $__starshipPrompt
     }
 }
 
-# ==========================================
-# Zoxide (smart cd)
-# ==========================================
-Invoke-Expression (& { (zoxide init powershell | Out-String) })
 
 # ==========================================
-# fzf fuzzy cd
+# Zoxide - Smart Directory Navigation
 # ==========================================
-# Type: cdf
-# Opens a fuzzy folder picker
+# Replaces cd with a smarter directory jumper.
+# Example:
+#   z github
+#   z project
+Invoke-Expression (& { (zoxide init powershell | Out-String) })
+
+
+# ==========================================
+# FZF - Interactive Folder Picker
+# ==========================================
+# Quickly browse and select folders from the current location.
+#
+# Usage:
+#   cdf
+#
+# Controls:
+#   ↑ ↓  Select folder
+#   Enter Open folder
+#   ESC   Cancel
 function fcd {
     $dir = fzf --walker=dir
+
     if ($dir) {
         Set-Location $dir
     }
 }
+
 Set-Alias cdf fcd
 
+
 # ==========================================
-# thefuck
+# The Fuck - Command Correction Tool
 # ==========================================
+# Automatically fixes previous mistyped commands.
+# Example:
+#   Typo command → fuck → corrected command
 $env:TF_SHELL = "powershell"
 
-# Ensure Python 3.11 Scripts folder takes priority in PATH
+
+# ==========================================
+# Python Scripts Path Configuration
+# ==========================================
+# Add Python 3.11 Scripts folder to PATH
+# (Required for tools installed with pip)
 $py311Scripts = "$env:LOCALAPPDATA\Programs\Python\Python311\Scripts"
+
 if ($env:PATH -notlike "*$py311Scripts*") {
     $env:PATH = "$py311Scripts;$env:PATH"
 }
 
-# Generate and evaluate the alias clean of warnings
+
+# ==========================================
+# Initialize The Fuck Alias
+# ==========================================
+# Loads thefuck PowerShell alias without showing Python warnings.
 if (Test-Path "$py311Scripts\thefuck.exe") {
     $env:PYTHONWARNINGS = "ignore"
+
     $fuckAlias = (& "$py311Scripts\thefuck.exe" --alias 2>$null) | Out-String
+
     if ($fuckAlias) {
         Invoke-Expression $fuckAlias
     }
 }
 
+
 # ==========================================
-# PSReadLine
+# PSReadLine - Enhanced Command History
 # ==========================================
+# Enables command suggestions and better history navigation.
 Set-PSReadLineOption -PredictionSource History
 Set-PSReadLineOption -PredictionViewStyle ListView
+
+# Search previous commands using arrow keys.
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
-# ==========================================
-# Aliases
-# ==========================================
-Set-Alias ls lsd
 
 # ==========================================
-# Open Notepad++ instead of standard Notepad
+# Terminal Aliases
 # ==========================================
+# Use lsd instead of default ls for icons and better output.
+Set-Alias ls lsd
+
+
+# ==========================================
+# Notepad Replacement
+# ==========================================
+# Opens Notepad++ whenever "notepad" command is used.
 function notepad {
     & "C:\Program Files\Notepad++\notepad++.exe" $args
 }
