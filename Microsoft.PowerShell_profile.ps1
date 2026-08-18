@@ -1,7 +1,12 @@
 # ==========================================
 # Windows Terminal + PowerShell 7 + Starship
 # ==========================================
-
+function cdf {
+    $folder = Get-ChildItem -Directory | ForEach-Object { $_.FullName } | fzf
+    if ($folder) {
+        Set-Location $folder
+    }
+}
 # ==========================================
 # Starship Prompt
 # ==========================================
