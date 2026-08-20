@@ -6,14 +6,16 @@
 # ==========================================
 # Starship Prompt Configuration
 # ==========================================
+
 if (Get-Command starship -ErrorAction SilentlyContinue) {
+
     Invoke-Expression (&starship init powershell)
 
-    # Add an empty line between prompts for better readability.
-    # Avoid adding spacing after clear/cls commands so a cleared terminal starts clean.
+    # Add empty line between prompts
     $__starshipPrompt = $function:prompt
 
     function prompt {
+
         $__lastCmd = (Get-History -Count 1).CommandLine
 
         if ($MyInvocation.HistoryId -gt 1 -and $__lastCmd -notin @('clear', 'cls')) {
@@ -28,95 +30,113 @@ if (Get-Command starship -ErrorAction SilentlyContinue) {
 # ==========================================
 # Zoxide - Smart Directory Navigation
 # ==========================================
-# Replaces cd with a smarter directory jumper.
-# Example:
-#   z github
-#   z project
-Invoke-Expression (& { (zoxide init powershell | Out-String) })
+
+if (Get-Command zoxide -ErrorAction SilentlyContinue) {
+
+    Invoke-Expression (& {
+        zoxide init powershell | Out-String
+    })
+
+}
 
 
 # ==========================================
 # FZF - Interactive Folder Picker
 # ==========================================
-# Quickly browse and select folders from the current location.
-#
-# Usage:
-#   cdf
-#
-# Controls:
-#   ↑ ↓  Select folder
-#   Enter Open folder
-#   ESC   Cancel
-function fcd {
-    $dir = fzf --walker=dir
 
-    if ($dir) {
-        Set-Location $dir
+if (Get-Command fzf -ErrorAction SilentlyContinue) {
+
+    function fcd {
+
+        $dir = fzf --walker=dir
+
+        if ($dir) {
+            Set-Location $dir
+        }
+
     }
-}
 
-Set-Alias cdf fcd
+    Set-Alias cdf fcd
+
+}
 
 
 # ==========================================
 # The Fuck - Command Correction Tool
 # ==========================================
-# Automatically fixes previous mistyped commands.
-# Example:
-#   Typo command → fuck → corrected command
+
 $env:TF_SHELL = "powershell"
+$env:PYTHONWARNINGS = "ignore"
+
+if (Get-Command thefuck -ErrorAction SilentlyContinue) {
+
+    $fuckInit = thefuck --alias | Out-String
+
+    if ($fuckInit) {
+
+        Invoke-Expression $fuckInit
+
+    }
+
+}
 
 
 # ==========================================
-# Python Scripts Path Configuration
+# Python 3.11 Scripts PATH
 # ==========================================
-# Add Python 3.11 Scripts folder to PATH
-# (Required for tools installed with pip)
+
 $py311Scripts = "$env:LOCALAPPDATA\Programs\Python\Python311\Scripts"
 
-if ($env:PATH -notlike "*$py311Scripts*") {
-    $env:PATH = "$py311Scripts;$env:PATH"
-}
+if (Test-Path $py311Scripts) {
 
+    if ($env:PATH -notlike "*$py311Scripts*") {
 
-# ==========================================
-# Initialize The Fuck Alias
-# ==========================================
-# Loads thefuck PowerShell alias without showing Python warnings.
-if (Test-Path "$py311Scripts\thefuck.exe") {
-    $env:PYTHONWARNINGS = "ignore"
+        $env:PATH = "$py311Scripts;$env:PATH"
 
-    $fuckAlias = (& "$py311Scripts\thefuck.exe" --alias 2>$null) | Out-String
-
-    if ($fuckAlias) {
-        Invoke-Expression $fuckAlias
     }
+
 }
 
 
 # ==========================================
-# PSReadLine - Enhanced Command History
+# PSReadLine - Better History
 # ==========================================
-# Enables command suggestions and better history navigation.
-Set-PSReadLineOption -PredictionSource History
-Set-PSReadLineOption -PredictionViewStyle ListView
 
-# Search previous commands using arrow keys.
-Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
+if (Get-Module -ListAvailable PSReadLine) {
+
+    Set-PSReadLineOption -PredictionSource History
+    Set-PSReadLineOption -PredictionViewStyle ListView
+
+    Set-PSReadLineKeyHandler `
+        -Key UpArrow `
+        -Function HistorySearchBackward
+
+    Set-PSReadLineKeyHandler `
+        -Key DownArrow `
+        -Function HistorySearchForward
+
+}
 
 
 # ==========================================
-# Terminal Aliases
+# LSD - Better ls Command
 # ==========================================
-# Use lsd instead of default ls for icons and better output.
-Set-Alias ls lsd
+
+if (Get-Command lsd -ErrorAction SilentlyContinue) {
+
+    Remove-Item Alias:ls -Force -ErrorAction SilentlyContinue
+
+    Set-Alias ls lsd
+
+}
 
 
 # ==========================================
-# Notepad Replacement
+# Notepad++ Replacement
 # ==========================================
-# Opens Notepad++ whenever "notepad" command is used.
+
 function notepad {
+
     & "C:\Program Files\Notepad++\notepad++.exe" $args
+
 }
